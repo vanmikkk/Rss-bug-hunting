@@ -11,41 +11,55 @@ let currentFilter = "all";
 let nextId = 1;
 
 function addTask() {
-  const text = input.value;
-  errorEl.hidden = true;
-  tasks.push({ id: nextId++, text: text, done: false });
-  input.value = "";
-  render();
+  const text = input.value.trim();
+  if(text != ""){
+    errorEl.hidden = true;
+    tasks.push({ id: nextId++, text: text, done: false });
+    input.value = "";
+    render();
+  } else {
+    errorEl.hidden = false;
+  }
 }
 
 function toggleTask(id) {
   const task = tasks.find((t) => t.id === id);
-  task.done = true;
+  task.done = task.done ? false : true;
   render();
 }
 
 function deleteTask(id) {
-  tasks.filter((t) => t.id !== id);
+  tasks = tasks.filter((t) => t.id !== id);
   render();
 }
 
 function clearCompleted() {
-  tasks = [];
+  tasks = tasks.filter(task => task.done === false);
   render();
 }
 
 function getVisibleTasks() {
+  if (currentFilter === "active") {
+    return tasks.filter(task => task.done === false);
+  }
+
+  if (currentFilter === "done") {
+    return tasks.filter(task => task.done === true);
+  }
+
   return tasks;
 }
 
 function updateCounter() {
-  counter.textContent = "Активных задач: " + tasks.length;
+  const activeTasks = tasks.filter(task => task.done === false).length;
+  counter.textContent = "Активных задач: " + activeTasks;
 }
 
 function render() {
   const visible = getVisibleTasks();
+  list.innerHTML = ""
   for (let i = 1; i <= visible.length; i++) {
-    const task = visible[i];
+    const task = visible[i-1];
     const li = document.createElement("li");
     li.className = "task";
     if (task.done) {
@@ -69,7 +83,7 @@ function render() {
   updateCounter();
 }
 
-addBtn.addEventListener("dblclick", addTask);
+addBtn.addEventListener("click", addTask);
 clearBtn.addEventListener("click", clearCompleted);
 
 filterButtons.forEach((btn) => {
@@ -77,6 +91,7 @@ filterButtons.forEach((btn) => {
     filterButtons.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     currentFilter = btn.dataset.filter;
+
     render();
   });
 });
